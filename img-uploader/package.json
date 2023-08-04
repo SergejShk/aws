@@ -14,7 +14,8 @@
     "@middy/core": "^3.4.0",
     "@middy/http-json-body-parser": "^3.4.0",
     "aws-sdk": "^2.1428.0",
-    "lambda-multipart-parser": "^1.0.1"
+    "lambda-multipart-parser": "^1.0.1",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@serverless/typescript": "^3.0.0",

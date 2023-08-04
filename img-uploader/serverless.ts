@@ -3,6 +3,7 @@ import type { AWS } from '@serverless/typescript';
 import { uploadImage } from '@functions/index';
 
 import { s3Resource } from 'src/resources/s3Resource';
+import { dynamoResource } from 'src/resources/dynamoResource';
 
 const serverlessConfiguration: AWS = {
   service: 'img-uploader',
@@ -21,17 +22,30 @@ const serverlessConfiguration: AWS = {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       NODE_OPTIONS: '--enable-source-maps --stack-trace-limit=1000',
       BUCKET_NAME: "${self:service}-image-bucket",
+      IMAGES_TABLE: "${self:service}-images",
     },
     iam: {
       role: {
         statements: [
           {
             Effect: "Allow",
-            Action: [
-              "s3:*"
-            ],
+            Action: ["s3:*"],
             Resource: [
               ['arn:aws:s3:::${self:service}-image-bucket']
+            ],
+          },
+          {
+            Effect: "Allow",
+            Action: [
+              "dynamodb:PutItem",
+              "dynamodb:Get*",
+              "dynamodb:Scan",
+              "dynamodb:Query",
+              "dynamodb:UpdateItem",
+              "dynamodb:DeleteItem",
+            ],
+            Resource: [
+              ['arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:service}-images']
             ],
           },
         ]
@@ -55,7 +69,8 @@ const serverlessConfiguration: AWS = {
   },
   resources: {
     Resources: {
-      ...s3Resource
+      ...s3Resource,
+      ...dynamoResource,
     },
 },
 };
