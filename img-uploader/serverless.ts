@@ -1,6 +1,7 @@
 import type { AWS } from '@serverless/typescript';
 
 import { uploadImage } from '@functions/index';
+import { getImages } from '@functions/index';
 
 import { s3Resource } from 'src/resources/s3Resource';
 import { dynamoResource } from 'src/resources/dynamoResource';
@@ -53,7 +54,7 @@ const serverlessConfiguration: AWS = {
     }
   },
   // import the function via paths
-  functions: { uploadImage },
+  functions: { uploadImage, getImages },
   package: { individually: true },
   custom: {
     esbuild: {

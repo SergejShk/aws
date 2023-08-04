@@ -23,7 +23,8 @@ const saveFile = async (file: parser.MultipartFile) => {
 
   const fileToSave = {
     primary_key: uuidv4(),
-    link: `https://${BucketName}.s3.amazonaws.com/${newFileName}`
+    name: file.filename,
+    url: `https://${BucketName}.s3.amazonaws.com/${newFileName}`
   }
 
   await dynamoDB.put({
