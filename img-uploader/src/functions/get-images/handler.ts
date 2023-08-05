@@ -1,3 +1,5 @@
+import { APIGatewayProxyEvent } from "aws-lambda";
+
 import { formatJSONResponse } from '@libs/api-gateway';
 import { middyfy } from '@libs/lambda';
 
@@ -5,12 +7,18 @@ import { sendResponse } from "src/utils/sendResponse";
 import { TableName } from "src/utils/const";
 import { dynamoDB } from 'src/utils/providers';
 
+const getImages = async (event: APIGatewayProxyEvent) => {
+    const { limit, startKey } = event.queryStringParameters;
 
-const getImages = async () => {
+    const ExclusiveStartKey = {
+        primary_key: startKey,
+    }
+
     try {
         const images = await dynamoDB.scan({
             TableName,
-            Limit: 20,
+            Limit: Number(limit) || 20,
+            ...(startKey ? { ExclusiveStartKey }  : {})
         }).promise();
     
         return formatJSONResponse({
