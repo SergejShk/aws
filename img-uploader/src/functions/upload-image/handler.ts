@@ -1,4 +1,3 @@
-import * as AWS from "aws-sdk";
 import * as parser from "lambda-multipart-parser";
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { v4 as uuidv4 } from 'uuid';
@@ -6,13 +5,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { formatJSONResponse } from '@libs/api-gateway';
 import { middyfy } from '@libs/lambda';
 
-const s3 = new AWS.S3()
-const dynamoDB = new AWS.DynamoDB.DocumentClient()
+import { sendResponse } from "src/utils/sendResponse";
+import { BucketName, TableName } from "src/utils/const";
+import { dynamoDB, s3 } from "src/utils/providers";
 
 const saveFile = async (file: parser.MultipartFile) => {
-  const BucketName = process.env.BUCKET_NAME
-  const TableName = process.env.IMAGES_TABLE
-
   const newFileName = uuidv4()
 
   await s3.putObject({
@@ -22,13 +19,13 @@ const saveFile = async (file: parser.MultipartFile) => {
   }).promise();
 
   const fileToSave = {
-    primary_key: uuidv4(),
+    primary_key: newFileName,
     name: file.filename,
     url: `https://${BucketName}.s3.amazonaws.com/${newFileName}`
   }
 
   await dynamoDB.put({
-    TableName: TableName,
+    TableName,
     Item: fileToSave,
 }).promise();
 
@@ -36,15 +33,19 @@ const saveFile = async (file: parser.MultipartFile) => {
 }
 
 const uploadImage = async (event: APIGatewayProxyEvent) => {
-  const { files } = await parser.parse(event)
+  try {
+    const { files } = await parser.parse(event)
   
-  const savedImages = files.map(saveFile)
-  const result = await Promise.all(savedImages);
+    const savedImages = files.map(saveFile)
+    const result = await Promise.all(savedImages);
 
   return formatJSONResponse({
     message: `Images uploaded seccessfully!`,
     body: result,
   });
+  } catch (error) {
+    return sendResponse(400, error);
+  }
 };
 
 export const main = middyfy(uploadImage);
