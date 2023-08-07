@@ -1,6 +1,6 @@
 import type { AWS } from '@serverless/typescript';
 
-import { register, uploadImage } from '@functions/index';
+import { login, register, uploadImage } from '@functions/index';
 import { getImages } from '@functions/index';
 
 import { cogntioResource } from 'src/resources/cognitoResource';
@@ -66,7 +66,7 @@ const serverlessConfiguration: AWS = {
     }
   },
   // import the function via paths
-  functions: { register, uploadImage, getImages },
+  functions: { register, login, uploadImage, getImages },
   package: { individually: true },
   custom: {
     esbuild: {
