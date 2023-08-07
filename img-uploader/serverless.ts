@@ -3,6 +3,7 @@ import type { AWS } from '@serverless/typescript';
 import { uploadImage } from '@functions/index';
 import { getImages } from '@functions/index';
 
+import { cogntioResource } from 'src/resources/cognitoResource';
 import { s3Resource } from 'src/resources/s3Resource';
 import { dynamoResource } from 'src/resources/dynamoResource';
 
@@ -28,6 +29,15 @@ const serverlessConfiguration: AWS = {
     iam: {
       role: {
         statements: [
+          {
+            Effect: "Allow",
+            Action: [
+              "cognito-idp:AdminInitiateAuth",
+              "cognito-idp:AdminCreateUser",
+              "cognito-idp:AdminSetUserPassword",
+            ],
+            Resource: "*",
+          },
           {
             Effect: "Allow",
             Action: ["s3:*"],
@@ -70,6 +80,7 @@ const serverlessConfiguration: AWS = {
   },
   resources: {
     Resources: {
+      ...cogntioResource,
       ...s3Resource,
       ...dynamoResource,
     },
