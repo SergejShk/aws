@@ -1,6 +1,6 @@
 import type { AWS } from '@serverless/typescript';
 
-import { uploadImage } from '@functions/index';
+import { register, uploadImage } from '@functions/index';
 import { getImages } from '@functions/index';
 
 import { cogntioResource } from 'src/resources/cognitoResource';
@@ -21,6 +21,8 @@ const serverlessConfiguration: AWS = {
       binaryMediaTypes: ["*/*"]
     },
     environment: {
+      USER_POOL: { Ref: 'UserPool' },
+      USER_POOL_CLIENT: { Ref: 'UserClient' },
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       NODE_OPTIONS: '--enable-source-maps --stack-trace-limit=1000',
       BUCKET_NAME: "${self:service}-image-bucket",
@@ -64,7 +66,7 @@ const serverlessConfiguration: AWS = {
     }
   },
   // import the function via paths
-  functions: { uploadImage, getImages },
+  functions: { register, uploadImage, getImages },
   package: { individually: true },
   custom: {
     esbuild: {
