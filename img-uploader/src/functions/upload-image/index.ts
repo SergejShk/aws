@@ -14,6 +14,11 @@ export default {
             'application/json': schema,
           },
         },
+        authorizer: {
+          authorizerId: { Ref: 'ApiAuthorizer' },
+          type: 'COGNITO_USER_POOLS',
+          claims: ['email'],
+        },   
       },
     },
   ],

@@ -8,8 +8,9 @@ import { middyfy } from '@libs/lambda';
 import { sendResponse } from "src/utils/sendResponse";
 import { BucketName, TableName } from "src/utils/const";
 import { dynamoDB, s3 } from "src/utils/providers";
+import { retrieveAuthData } from "src/utils/retrieveAuthData";
 
-const saveFile = async (file: parser.MultipartFile) => {
+const saveFile = async (file: parser.MultipartFile, userName: string) => {
   const newFileName = uuidv4()
 
   await s3.putObject({
@@ -20,6 +21,7 @@ const saveFile = async (file: parser.MultipartFile) => {
 
   const fileToSave = {
     primary_key: newFileName,
+    email: userName,
     name: file.filename,
     url: `https://${BucketName}.s3.amazonaws.com/${newFileName}`
   }
@@ -33,10 +35,13 @@ const saveFile = async (file: parser.MultipartFile) => {
 }
 
 const uploadImage = async (event: APIGatewayProxyEvent) => {
+  const authData = retrieveAuthData(event)
+  const userName = authData?.username || ''
+
   try {
     const { files } = await parser.parse(event)
-  
-    const savedImages = files.map(saveFile)
+
+    const savedImages = files.map((file) => saveFile(file, userName))
     const result = await Promise.all(savedImages);
 
   return formatJSONResponse({

@@ -6,9 +6,14 @@ import { middyfy } from '@libs/lambda';
 import { sendResponse } from "src/utils/sendResponse";
 import { TableName } from "src/utils/const";
 import { dynamoDB } from 'src/utils/providers';
+import { retrieveAuthData } from "src/utils/retrieveAuthData";
 
 const getImages = async (event: APIGatewayProxyEvent) => {
-    const { limit, startKey } = event.queryStringParameters;
+    const startKey = event.queryStringParameters?.startKey || ''
+    const limit = Number(event.queryStringParameters?.limit) || 20
+
+    const authData = retrieveAuthData(event)
+    const userName = authData?.username || ''
 
     const ExclusiveStartKey = {
         primary_key: startKey,
@@ -17,7 +22,11 @@ const getImages = async (event: APIGatewayProxyEvent) => {
     try {
         const images = await dynamoDB.scan({
             TableName,
-            Limit: Number(limit) || 20,
+            FilterExpression: 'email = :email',
+            ExpressionAttributeValues: { 
+                ':email': userName,
+            },
+            Limit: limit || 20,
             ...(startKey ? { ExclusiveStartKey }  : {})
         }).promise();
     

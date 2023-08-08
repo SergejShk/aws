@@ -32,5 +32,18 @@ export const cogntioResource: AWS["resources"]["Resources"] = {
             IdTokenValidity: 5,
             ExplicitAuthFlows: ['ADMIN_NO_SRP_AUTH'],
         }
-    }
+    },
+    ApiAuthorizer: {
+        DependsOn: ['ApiGatewayRestApi'],
+        Type: 'AWS::ApiGateway::Authorizer',
+        Properties: {
+            Name: 'Authorizer-${self:service}',
+            Type: 'COGNITO_USER_POOLS',
+            RestApiId: {
+                Ref: 'ApiGatewayRestApi',
+            },
+            ProviderARNs: [{ 'Fn::GetAtt': ['UserPool', 'Arn']}],
+            IdentitySource: 'method.request.header.Authorization',
+        },
+    },
 }
