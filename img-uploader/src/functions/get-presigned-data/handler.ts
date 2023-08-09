@@ -17,6 +17,7 @@ const getPresignedData: ValidatedEventAPIGatewayProxyEvent<typeof schema> = asyn
         Bucket: BucketName,
         Fields: {
             key: fileName + uuidv4(),
+            'Content-Type': 'image/jpg'
         },
         Expires: 300,
         Conditions: [
