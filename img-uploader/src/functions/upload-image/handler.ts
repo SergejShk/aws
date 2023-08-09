@@ -1,29 +1,18 @@
-import * as parser from "lambda-multipart-parser";
-import { APIGatewayProxyEvent } from "aws-lambda";
-import { v4 as uuidv4 } from 'uuid';
-
-import { formatJSONResponse } from '@libs/api-gateway';
+import { formatJSONResponse, ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { middyfy } from '@libs/lambda';
 
+import schema from "./schema";
+
 import { sendResponse } from "src/utils/sendResponse";
-import { BucketName, TableName } from "src/utils/const";
-import { dynamoDB, s3 } from "src/utils/providers";
+import { TableName } from "src/utils/const";
+import { dynamoDB } from "src/utils/providers";
 import { retrieveAuthData } from "src/utils/retrieveAuthData";
 
-const saveFile = async (file: parser.MultipartFile, userName: string) => {
-  const newFileName = uuidv4()
-
-  await s3.putObject({
-    Bucket: BucketName,
-    Key: newFileName,
-    Body: file.content,
-  }).promise();
-
+const saveFile = async (key: string, url: string, email: string) => {
   const fileToSave = {
-    primary_key: newFileName,
-    email: userName,
-    name: file.filename,
-    url: `https://${BucketName}.s3.amazonaws.com/${newFileName}`
+    primary_key: key,
+    email,
+    url,
   }
 
   await dynamoDB.put({
@@ -34,20 +23,18 @@ const saveFile = async (file: parser.MultipartFile, userName: string) => {
   return fileToSave
 }
 
-const uploadImage = async (event: APIGatewayProxyEvent) => {
+const uploadImage: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   const authData = retrieveAuthData(event)
-  const userName = authData?.username || ''
+  const email = authData?.username || ''
+  const key = String(event.body.key)
+  const url = String(event.body.url)
 
   try {
-    const { files } = await parser.parse(event)
+    const result = await saveFile(key, url, email)
 
-    const savedImages = files.map((file) => saveFile(file, userName))
-    const result = await Promise.all(savedImages);
-
-  return formatJSONResponse({
-    message: `Images uploaded seccessfully!`,
-    body: result,
-  });
+    return formatJSONResponse({
+      body: result,
+    });
   } catch (error) {
     return sendResponse(400, error);
   }

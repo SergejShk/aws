@@ -4,9 +4,10 @@ export default {
     body: { 
       type: 'object',
       properties: {
-        image: { type: 'string' },
+        key: { type: 'string' },
+        url: { type: 'string' },
       }
     }
   },
-  required: ['image'],
+  required: ['key', 'url'],
 } as const;
