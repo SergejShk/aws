@@ -24,7 +24,7 @@ const login: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) =
             })
             .promise();
 
-        return formatJSONResponse({ accessToken: response.AuthenticationResult.AccessToken });
+        return formatJSONResponse({ accessToken: response.AuthenticationResult.IdToken });
     } catch (error) {
         return sendResponse(400, error);
     }
